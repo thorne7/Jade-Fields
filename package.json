@@ -1,0 +1,24 @@
+{
+  "name": "jade-fields",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thorne7/Jade-Fields.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thorne7/Jade-Fields/issues"
+  },
+  "homepage": "https://github.com/thorne7/Jade-Fields#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
