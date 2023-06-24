@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-// const { readFromFile, writeToFile, readAndAppend } = require('../fsUtils');
 const fs = require('fs');
-const app = express();
 
-const notes = [];
+let notes = require('../db/db.json');
 
-router.get('/api/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/notes.html'));
+router.get('/notes', (req, res) => {
+  res.sendFile('notes.html', { root: './public' });
 });
 
 router.get('/api/notes', (req, res) => {
@@ -16,27 +13,34 @@ router.get('/api/notes', (req, res) => {
 });
 
 router.post('/api/notes', (req, res) => {
-  const { title, text } = req.body;
-  if (!title || !text) {
-    return res.status(400).send('Please provide a title and note content');
-  }
-  const newNote = { title, text, id: notes.length + 1 };
-  notes.push(newNote);
-  fs.writeFile('./db/db.json', JSON.stringify(notes), (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error saving note');
-    }
-    console.info('Note saved successfully!');
-    return res.send(newNote);
-  });
+  notes.push(req.body);
+
+  fs.writeFile('./db/db.json', JSON.stringify(notes), (writeErr) =>
+    writeErr ? console.error(writeErr) : console.info('Success!')
+  );
+
+  res.json(notes);
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public'));
+router.delete('/api/notes/:id', (req, res) => {
+  const noteId = req.params.id;
+
+  // Find the index of the note with the given id
+  const noteIndex = notes.findIndex((note) => note.id === noteId);
+
+  if (noteIndex !== -1) {
+    // Remove the note from the notes array
+    notes.splice(noteIndex, 1);
+
+    // Update the db.json file
+    fs.writeFile('./db/db.json', JSON.stringify(notes), (writeErr) =>
+      writeErr ? console.error(writeErr) : console.info('Success!')
+    );
+
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
 });
 
 module.exports = router;
-
-
-
