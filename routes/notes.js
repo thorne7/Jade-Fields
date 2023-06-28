@@ -1,25 +1,49 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
+const path = require('path')
+const { v4: uuidv4 } = require('uuid');
 
-let notes = require('../db/db.json');
+let notes = [];
 
 router.get('/notes', (req, res) => {
-  res.sendFile('notes.html', { root: './public' });
+  res.sendFile(path.join(__dirname, '../db/db.json'))
 });
 
 router.get('/api/notes', (req, res) => {
-  res.json(notes);
+  fs.readFile(path.join(__dirname, '../db/db.json'), 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    const notes = JSON.parse(data);
+    res.json(notes);
+  });
 });
 
 router.post('/api/notes', (req, res) => {
-  notes.push(req.body);
+  const newNote = req.body;
+  newNote.id = uuidv4();
 
-  fs.writeFile('./db/db.json', JSON.stringify(notes), (writeErr) =>
-    writeErr ? console.error(writeErr) : console.info('Success!')
-  );
+  fs.readFile(path.join(__dirname, '../db/db.json'), 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
 
-  res.json(notes);
+    const notes = JSON.parse(data);
+    notes.push(newNote);
+
+    fs.writeFile(path.join(__dirname, '../db/db.json'), JSON.stringify(notes), (writeErr) => {
+      if (writeErr) {
+        console.error(writeErr);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      res.json(newNote);
+    });
+  });
 });
 
 router.delete('/api/notes/:id', (req, res) => {
@@ -33,7 +57,7 @@ router.delete('/api/notes/:id', (req, res) => {
     notes.splice(noteIndex, 1);
 
     // Update the db.json file
-    fs.writeFile('./db/db.json', JSON.stringify(notes), (writeErr) =>
+    fs.writeFile('../db/db.json', JSON.stringify(notes), (writeErr) =>
       writeErr ? console.error(writeErr) : console.info('Success!')
     );
 
